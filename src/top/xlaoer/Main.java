@@ -1,6 +1,7 @@
 package top.xlaoer;
 
 import top.xlaoer.core.Downloader;
+import top.xlaoer.util.LogUtils;
 
 import java.util.Scanner;
 
@@ -13,7 +14,7 @@ public class Main {
         //下载地址
         String url = null;
         while(url==null){
-            System.out.println("请输入url:");
+            LogUtils.info("请输入下载地址url:");
             //Scanner获取用户在控制台输入的下载地址
             Scanner sc = new Scanner(System.in);
             url = sc.next();

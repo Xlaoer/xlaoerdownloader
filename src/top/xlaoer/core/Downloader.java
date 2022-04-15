@@ -7,6 +7,7 @@ package top.xlaoer.core;
 
 import top.xlaoer.constant.Constant;
 import top.xlaoer.util.HttpUtils;
+import top.xlaoer.util.LogUtils;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -42,10 +43,10 @@ public class Downloader {
 
 
         }catch (FileNotFoundException e){
-            System.out.println("下载的文件不存在");
+            LogUtils.error("下载的文件不存在{}",url);
         }catch (Exception e){
             e.printStackTrace();
-            System.out.println("下载失败");
+            LogUtils.error("下载失败");
         }finally {
             //关闭连接对象
             if(httpURLConnection!=null){
