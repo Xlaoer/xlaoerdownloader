@@ -10,4 +10,9 @@ package top.xlaoer.constant;
  */
 public class Constant {
     public static final String PATH = "H:/JUCdownload/";
+
+    public static final double MB = 1024*1024d;
+
+    public static final int BYTE_SIZE = 1024*100;
+
 }
