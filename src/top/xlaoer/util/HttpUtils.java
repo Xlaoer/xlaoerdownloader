@@ -11,6 +11,25 @@ import java.net.URLConnection;
  * @date 2022/4/14 16:28
  */
 public class HttpUtils {
+    /**
+     * 分块下载
+     * @param url   下载地址
+     * @param startPos  下载文件起始位置
+     * @param endPos    下载文件的结束位置
+     * @return
+     */
+    public static HttpURLConnection getHttpURLConnection(String url,long startPos,long endPos) throws IOException {
+        HttpURLConnection httpURLConnection = getHttpURLConnection(url);
+        LogUtils.info("下载的区间为：{}-{}",startPos,endPos);
+
+        if(endPos!=0){
+            httpURLConnection.setRequestProperty("RANGE","bytes="+startPos+"-"+endPos);
+        }else{
+            //说明下载的是最后一块区域，会把所有内容返回
+            httpURLConnection.setRequestProperty("RANGE","bytes="+startPos+"-");
+        }
+        return httpURLConnection;
+    }
 
     /**
      * 获取HttpURLConnection
