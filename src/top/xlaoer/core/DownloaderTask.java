@@ -57,9 +57,13 @@ public class DownloaderTask implements Callable<Boolean> {
 
         } catch (FileNotFoundException e) {
             LogUtils.error("下载文件不存在{}", url);
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
             LogUtils.error("下载出错");
+            return false;
+        }finally {
+            httpURLConnection.disconnect();
         }
 
 

@@ -11,6 +11,26 @@ import java.net.URLConnection;
  * @date 2022/4/14 16:28
  */
 public class HttpUtils {
+
+
+    /**
+     * 获取下载文件大小
+     * @param url
+     * @return
+     * @throws IOException
+     */
+    public static long getHttpFileContentLength(String url) throws IOException {
+        HttpURLConnection httpURLConnection = null;
+        try {
+            httpURLConnection = getHttpURLConnection(url);
+        } finally {
+            if(httpURLConnection!=null){
+                httpURLConnection.disconnect();
+            }
+        }
+        return httpURLConnection.getContentLengthLong();
+    }
+
     /**
      * 分块下载
      * @param url   下载地址

@@ -15,4 +15,6 @@ public class Constant {
 
     public static final int BYTE_SIZE = 1024*100;
 
+    //线程的数量
+    public static final int THREAD_NUM = 5;
 }

@@ -12,10 +12,8 @@ import top.xlaoer.util.LogUtils;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.concurrent.*;
 
 /**
  * 下载器
@@ -23,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 public class Downloader {
 
     private ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+
+    private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(Constant.THREAD_NUM,Constant.THREAD_NUM,0,TimeUnit.SECONDS,new ArrayBlockingQueue<>(Constant.THREAD_NUM));
 
     public void download(String url){
         //获取文件名
@@ -46,29 +46,21 @@ public class Downloader {
             }
             infoThread = new DownloaderInfoThread(contentTotalLength);
             pool.scheduleAtFixedRate(infoThread,1,1, TimeUnit.SECONDS);
+
+            //切分任务
+            ArrayList<Future> list = new ArrayList<>();
+            split(url,list);
+            for(Future future : list){
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        try(    InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedInputStream bis = new BufferedInputStream(inputStream);
-                FileOutputStream fos = new FileOutputStream(httpFileName);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-
-                ) {
-            int len = -1;
-            byte[] buffer = new byte[Constant.BYTE_SIZE];
-            while((len=bis.read(buffer))!=-1){
-                infoThread.thisDownloadFile+=len;
-                bos.write(buffer,0,len);
-            }
-
-
-        }catch (FileNotFoundException e){
-            LogUtils.error("下载的文件不存在{}",url);
-        }catch (Exception e){
-            e.printStackTrace();
-            LogUtils.error("下载失败");
         }finally {
             System.out.print("\r");
             System.out.print("下载完成");
@@ -80,4 +72,39 @@ public class Downloader {
         }
 
     }
+
+    /**
+     * 文件切分
+     * @param url
+     * @param futureArrayList
+     */
+    public void split(String url, ArrayList<Future> futureArrayList){
+        try {
+            long contentLength = HttpUtils.getHttpFileContentLength(url);
+
+            //计算切分后的文件大小
+            long size = contentLength/Constant.THREAD_NUM;
+            for(int i=0;i<Constant.THREAD_NUM;i++){
+                long startPos = i*size;
+                long endPos;
+                if(i == Constant.THREAD_NUM-1){
+                    endPos=0;
+                }else{
+                    endPos=startPos+size;
+                }
+                if(startPos!=0){
+                    startPos++;
+                }
+
+                //创建任务对象
+                DownloaderTask downloaderTask = new DownloaderTask(url, startPos, endPos, i);
+                Future<Boolean> future = threadPoolExecutor.submit(downloaderTask);
+                futureArrayList.add(future);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
