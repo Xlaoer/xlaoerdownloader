@@ -53,6 +53,9 @@ public class DownloaderTask implements Callable<Boolean> {
             byte[] buffer = new byte[Constant.BYTE_SIZE];
             while ((len = bis.read(buffer)) != -1) {
                 file.write(buffer, 0, len);
+                //为了直接拿到InfoThread里的变量累加，这里直接改成类变量了
+                //但是类变量有bug，如果多个用户使用这个，会出错，如果是Spring就好了，直接注入进来就能用了
+                DownloaderInfoThread.thisDownloadFile.add(len);
             }
 
         } catch (FileNotFoundException e) {

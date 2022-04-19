@@ -69,6 +69,15 @@ public class Downloader {
                 httpURLConnection.disconnect();
             }
             pool.shutdownNow();
+            threadPoolExecutor.shutdown();
+            try {
+                //如果一分钟后还没有关闭，则强制关闭
+                if(!threadPoolExecutor.awaitTermination(1,TimeUnit.MINUTES)){
+                    threadPoolExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
     }

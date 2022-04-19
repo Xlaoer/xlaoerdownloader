@@ -7,6 +7,8 @@ package top.xlaoer.core;
 
 import top.xlaoer.constant.Constant;
 
+import java.util.concurrent.atomic.LongAdder;
+
 /**
  * 展示下载信息
  */
@@ -15,10 +17,10 @@ public class DownloaderInfoThread implements Runnable{
     private long httpFileContentLength;
 
     //当前已经下载文件大小
-    private long alreadyDownloadFile;
+    private static LongAdder alreadyDownloadFile = new LongAdder();
 
     //当前下载文件数
-    public volatile long thisDownloadFile;
+    public static volatile LongAdder thisDownloadFile = new LongAdder();
 
     //上一秒下载文件数
     private long lastDownloadFile;
@@ -30,15 +32,15 @@ public class DownloaderInfoThread implements Runnable{
 
     @Override
     public void run() {
-        alreadyDownloadFile+=lastDownloadFile;
+        alreadyDownloadFile.add(lastDownloadFile);
 
-        String alreadyDownloadFileInfo = String.format("%.2f",alreadyDownloadFile/Constant.MB);
+        String alreadyDownloadFileInfo = String.format("%.2f",alreadyDownloadFile.doubleValue()/Constant.MB);
         String httpFileContentLengthInfo = String.format("%.2f",httpFileContentLength/Constant.MB);
 
-        double speed = thisDownloadFile/Constant.MB;
+        double speed = thisDownloadFile.doubleValue()/Constant.MB;
         String speedInfo = String.format("%.2f", speed);
 
-        long remainingFile = httpFileContentLength - alreadyDownloadFile;
+        long remainingFile = httpFileContentLength - alreadyDownloadFile.longValue();
         String remainingTimeInfo;
         if(speed>0){
             double remainingTime = remainingFile/Constant.MB/speed;
@@ -53,7 +55,7 @@ public class DownloaderInfoThread implements Runnable{
         System.out.print("\r");
         System.out.print(info);
 
-        lastDownloadFile = thisDownloadFile;
-        thisDownloadFile = 0;
+        lastDownloadFile = thisDownloadFile.longValue();
+        thisDownloadFile.reset();
     }
 }
