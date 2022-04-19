@@ -52,6 +52,7 @@ public class Downloader {
             split(url,list);
             for(Future future : list){
                 try {
+                    //get会阻塞主线程，直到分块下载完成
                     future.get();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -59,6 +60,12 @@ public class Downloader {
                     e.printStackTrace();
                 }
             }
+
+            if(merge(httpFileName)){
+                clearTemp(httpFileName);
+            }
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }finally {
@@ -80,6 +87,47 @@ public class Downloader {
             }
         }
 
+    }
+
+    private boolean clearTemp(String httpFileName) {
+        try {
+            for(int i=0;i<Constant.THREAD_NUM;i++){
+                File file = new File(httpFileName + ".temp" + i);
+                file.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        LogUtils.info("临时文件清理成功");
+        return true;
+    }
+
+
+    /**
+     * 文件合并
+     * @param httpFileName
+     * @return
+     */
+    private boolean merge(String httpFileName) {
+        LogUtils.info("开始合并文件");
+        try(RandomAccessFile file = new RandomAccessFile(httpFileName,"rw");){
+            for(int i=0;i<Constant.THREAD_NUM;i++){
+                try(BufferedInputStream br = new BufferedInputStream((new FileInputStream(httpFileName+".temp"+i)))){
+                    int len = -1;
+                    byte[] buffer = new byte[Constant.BYTE_SIZE];
+                    while((len=br.read(buffer))!=-1){
+                        file.write(buffer,0,len);
+                    }
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        LogUtils.info("文件合并成功");
+        return true;
     }
 
     /**
