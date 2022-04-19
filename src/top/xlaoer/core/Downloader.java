@@ -24,6 +24,8 @@ public class Downloader {
 
     private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(Constant.THREAD_NUM,Constant.THREAD_NUM,0,TimeUnit.SECONDS,new ArrayBlockingQueue<>(Constant.THREAD_NUM));
 
+    private CountDownLatch countDownLatch = new CountDownLatch(Constant.THREAD_NUM);
+
     public void download(String url){
         //获取文件名
         String httpFileName = HttpUtils.getHttpFileName(url);
@@ -50,23 +52,24 @@ public class Downloader {
             //切分任务
             ArrayList<Future> list = new ArrayList<>();
             split(url,list);
-            for(Future future : list){
-                try {
-                    //get会阻塞主线程，直到分块下载完成
-                    future.get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }
+//            for(Future future : list){
+//                try {
+//                    //get会阻塞主线程，直到分块下载完成
+//                    future.get();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+            countDownLatch.await();
 
             if(merge(httpFileName)){
                 clearTemp(httpFileName);
             }
 
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }finally {
             System.out.print("\r");
@@ -154,7 +157,7 @@ public class Downloader {
                 }
 
                 //创建任务对象
-                DownloaderTask downloaderTask = new DownloaderTask(url, startPos, endPos, i);
+                DownloaderTask downloaderTask = new DownloaderTask(url, startPos, endPos, i,countDownLatch);
                 Future<Boolean> future = threadPoolExecutor.submit(downloaderTask);
                 futureArrayList.add(future);
             }

@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Xlaoer
@@ -25,11 +26,14 @@ public class DownloaderTask implements Callable<Boolean> {
 
     private int part;
 
-    public DownloaderTask(String url, long startPos, long endPos, int part) {
+    private CountDownLatch countDownLatch;
+
+    public DownloaderTask(String url, long startPos, long endPos, int part, CountDownLatch countDownLatch) {
         this.url = url;
         this.startPos = startPos;
         this.endPos = endPos;
         this.part = part;
+        this.countDownLatch = countDownLatch;
     }
 
     @Override
@@ -65,8 +69,9 @@ public class DownloaderTask implements Callable<Boolean> {
             e.printStackTrace();
             LogUtils.error("下载出错");
             return false;
-        }finally {
+        } finally {
             httpURLConnection.disconnect();
+            countDownLatch.countDown();
         }
 
 
