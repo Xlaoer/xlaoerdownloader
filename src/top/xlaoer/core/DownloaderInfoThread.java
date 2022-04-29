@@ -16,8 +16,8 @@ public class DownloaderInfoThread implements Runnable{
     //下载文件总大小
     private long httpFileContentLength;
 
-    //当前已经下载文件大小
-    private static LongAdder alreadyDownloadFile = new LongAdder();
+    //当前已经下载文件大小（为了断点续传知道已经下载了多少，public出来)
+    public static LongAdder alreadyDownloadFile = new LongAdder();
 
     //当前下载文件数
     public static volatile LongAdder thisDownloadFile = new LongAdder();
@@ -51,7 +51,7 @@ public class DownloaderInfoThread implements Runnable{
 
 
 
-        String info = String.format("%s线程进行%sMB/s下载,下载数据量为%s/%sMB,剩余下载时间%s秒", Thread.currentThread().getName(), speedInfo,alreadyDownloadFileInfo, httpFileContentLengthInfo, remainingTimeInfo);
+        String info = String.format("%s线程进行%sMB/s下载信息展示,下载数据量为%s/%sMB,剩余下载时间%s秒", Thread.currentThread().getName(), speedInfo,alreadyDownloadFileInfo, httpFileContentLengthInfo, remainingTimeInfo);
         System.out.print("\r");
         System.out.print(info);
 
